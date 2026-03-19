@@ -1,0 +1,6 @@
+node_modules
+.next
+.git
+*.md
+phala-tee/node_modules
+phat-contract/node_modules
