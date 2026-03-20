@@ -52,9 +52,19 @@ The Enclave executes the requested strategy (e.g., executing a trade), and then 
                         |                      |
                         |  - Decrypt payload   |
                         |  - Execute strategy  |
+                        |    via Binance API   |
                         |  - 0x00 RAM wipe     |
                         |  - Generate HW       |
                         |    attestation       |
+                        +----------+----------+
+                                   |
+                          2b. Real HTTP call
+                          (HMAC SHA256 signed)
+                                   |
+                                   v
+                        +----------+----------+
+                        |   Binance API        |
+                        |   (Testnet/Prod)     |
                         +----------+----------+
                                    |
                           3. Return attestation
@@ -80,6 +90,8 @@ The Enclave executes the requested strategy (e.g., executing a trade), and then 
 |-----------|------|---------|
 | Frontend | `src/app/page.tsx` | Dashboard with task delegation & info market demo |
 | TEE Engine | `src/lib/tee-engine.ts` | Server-side TEE execution + key destruction + attestation |
+| Exchange Client | `src/lib/exchange-client.ts` | Binance REST API client with HMAC SHA256 signing |
+| Dstack Client | `src/lib/dstack.ts` | Dstack TEE integration (simulator + production) |
 | Crypto | `src/lib/crypto.ts` | Client-side AES-256-CBC encryption via Web Crypto API |
 | Delegate API | `src/app/api/delegate/route.ts` | POST: execute TEE task; GET: enclave public key |
 | Attestation API | `src/app/api/attestation/[id]/route.ts` | Retrieve attestation by task ID |
@@ -93,21 +105,29 @@ The Enclave executes the requested strategy (e.g., executing a trade), and then 
 ## Features
 
 ### 1. Real Encryption Flow
-API keys are encrypted client-side using AES-256-CBC (Web Crypto API) before being sent to the server. The server decrypts inside the TEE context only.
+API keys (API Key + Secret Key) are encrypted client-side using AES-256-CBC (Web Crypto API) before being sent to the server. The server decrypts inside the TEE context only.
 
-### 2. Server-Side TEE Simulation
-The `/api/delegate` route runs the full TEE lifecycle: decrypt, execute, 0x00 RAM overwrite, null assignment, attestation generation.
+### 2. Real Binance API Integration
+The TEE engine calls the **Binance REST API** (testnet by default) with HMAC SHA256 signed requests. Supported strategies:
+- **Check Account Balance** — `GET /api/v3/account`
+- **Check BTC/USDT Price** — `GET /api/v3/ticker/price`
+- **Market Buy BTC** — `POST /api/v3/order` (MARKET BUY 100 USDT)
+- **Market Sell BTC** — `POST /api/v3/order` (MARKET SELL 100 USDT)
+- **View Open Orders** — `GET /api/v3/openOrders`
 
-### 3. Arrow's Information Paradox Demo
+### 3. TEE Burn Lifecycle
+The `/api/delegate` route runs the full TEE lifecycle: decrypt credentials → execute Binance API call → 0x00 RAM overwrite of both API Key and Secret Key → null assignment → attestation generation.
+
+### 4. Arrow's Information Paradox Demo
 A second tab demonstrates the paper's core application: a buyer inspects information inside the TEE, and if they reject, the TEE provably forgets everything.
 
-### 4. Hardware Attestation Verification
+### 5. Hardware Attestation Verification
 Each task generates an attestation with hardware quote, key hash, and proof. Attestations can be verified at `/verify`.
 
-### 5. Wallet Connection
+### 6. Wallet Connection
 RainbowKit + wagmi integration for Polygon Amoy testnet. Ready for on-chain attestation storage.
 
-### 6. Game Theory Explainer
+### 7. Game Theory Explainer
 The UI includes a "How Conditional Recall Works" section mapping features directly to the paper's framework.
 
 ---
@@ -118,15 +138,23 @@ The UI includes a "How Conditional Recall Works" section mapping features direct
 - Node.js >= 18.0.0
 - NPM or Yarn
 
+### Get Binance Testnet API Keys
+1. Go to [testnet.binance.vision](https://testnet.binance.vision/)
+2. Log in with your GitHub account
+3. Click **"Generate HMAC_SHA256 Key"**
+4. Copy both the **API Key** and **Secret Key** (Secret Key is shown only once)
+
+Testnet provides free virtual funds (BTC, USDT, ETH) for testing.
+
 ### Start (Simulation Mode)
 ```bash
-git clone <your-repo>
+git clone https://github.com/QuocPMHE172252/burnbroker.git
 cd burnbroker
 npm install
 npm run dev
 ```
 
-Open `http://localhost:3000` to interact with the dashboard.
+Open `http://localhost:3000`, enter your Binance testnet API Key + Secret Key, choose a strategy, and click **Delegate & Execute**.
 
 ### Start (TEE Mode with Dstack Simulator)
 
@@ -165,11 +193,12 @@ In production, the app automatically connects to the real Dstack guest agent via
 
 | Paper Concept | Implementation |
 |---------------|----------------|
-| Credible Commitment to Forget | TEE engine with 0x00 RAM overwrite and null assignment |
+| Credible Commitment to Forget | TEE engine with 0x00 RAM overwrite and null assignment after real Binance API execution |
 | Arrow's Information Paradox | Info Market tab: inspect-then-forget flow |
-| Remote Attestation | Hardware attestation with quote, hash, and proof |
+| Remote Attestation | Hardware attestation with quote, key hash, and proof |
 | AI Agents in TEEs | Phala Phat Contract integration |
-| Game-Theoretic Efficiency | Two-mode demo showing both API key and info market use cases |
+| One-Shot Delegation | User delegates API key for a single strategy execution, key is destroyed immediately after |
+| Game-Theoretic Efficiency | Two-mode demo showing both API key delegation and info market use cases |
 
 ---
 
@@ -178,18 +207,20 @@ In production, the app automatically connects to the real Dstack guest agent via
 - **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS 4
 - **Animations:** Framer Motion
 - **Wallet:** wagmi, viem, RainbowKit
-- **TEE:** Phala Network Phat Contracts, custom TEE engine
+- **Exchange:** Binance REST API (Testnet + Production), HMAC SHA256 signing
+- **TEE:** Phala Network Phat Contracts, Dstack SDK, custom TEE engine
 - **Blockchain:** Solidity 0.8.x, Hardhat, Polygon Amoy
 - **Crypto:** Web Crypto API (AES-256-CBC), Node.js crypto
 
 ---
 
 ## Future Roadmap
+- [x] Real Binance API integration inside TEE (testnet + production)
 - [ ] Migrate TEE engine to production SGX enclave via Dstack `compose.yaml`
 - [ ] Implement zkTLS to prove exchange data source into the enclave
 - [ ] On-chain attestation storage with tx hash verification
 - [ ] Expand from trading bots to Multi-sig DAO Execution Proxy
-- [ ] Add real Binance/exchange API integration inside TEE
+- [ ] Support more exchanges (Bybit, OKX, Coinbase)
 
 ---
 
@@ -197,7 +228,8 @@ In production, the app automatically connects to the real Dstack guest agent via
 
 - [x] Project builds and runs locally
 - [x] Real client-side encryption (Web Crypto API)
-- [x] Server-side TEE simulation with key destruction
+- [x] Server-side TEE execution with key destruction
+- [x] Real Binance API integration (testnet)
 - [x] Hardware attestation generation
 - [x] Attestation verification page
 - [x] Arrow's Information Paradox demo
