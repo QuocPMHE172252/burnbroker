@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { getQuote, deriveKey, getEnclaveMode } from "./dstack";
+import { executeStrategy, type ExchangeResult } from "./exchange-client";
 
 export interface DelegateRequest {
   taskId: string;
@@ -102,16 +103,38 @@ export async function executeTEE(req: DelegateRequest): Promise<Attestation> {
     };
   }
 
-  const kHash = hashKey(activeAPIKey);
-  log(logs, "TEE_EXECUTE", `Strategy [${strategy.toUpperCase()}] activated.`);
-  log(logs, "TEE_NETWORK", "Routing secure HTTP outbound request to Exchange API...");
+  let credentials: { apiKey: string; secretKey: string };
+  try {
+    credentials = JSON.parse(activeAPIKey);
+  } catch {
+    credentials = { apiKey: activeAPIKey, secretKey: "" };
+  }
 
-  await new Promise((r) => setTimeout(r, 200));
-  log(logs, "TEE_SUCCESS", "Exchange returned HTTP 200 OK.");
+  const kHash = hashKey(credentials.apiKey);
+  log(logs, "TEE_EXECUTE", `Strategy [${strategy.toUpperCase()}] activated.`);
+  log(logs, "TEE_NETWORK", "Routing secure HTTP outbound request to Binance API...");
+
+  let exchangeResult: ExchangeResult;
+  try {
+    exchangeResult = await executeStrategy(strategy, credentials.apiKey, credentials.secretKey);
+    if (exchangeResult.success) {
+      log(logs, "TEE_SUCCESS", `Binance returned OK (${exchangeResult.executionTime}ms).`);
+      log(logs, "TEE_RESULT", JSON.stringify(exchangeResult.response).slice(0, 500));
+    } else {
+      log(logs, "TEE_WARN", `Binance returned error (${exchangeResult.executionTime}ms).`);
+      log(logs, "TEE_RESULT", JSON.stringify(exchangeResult.response).slice(0, 500));
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Exchange call failed";
+    log(logs, "TEE_ERROR", `Exchange error: ${msg}`);
+    exchangeResult = { success: false, strategy, response: { error: msg }, executionTime: 0 };
+  }
 
   log(logs, "TEE_DESTROY", "TRIGGERING CONDITIONAL RECALL...");
   log(logs, "TEE_DESTROY", "Overwriting RAM space with 0x00...");
 
+  credentials.apiKey = "\x00".repeat(credentials.apiKey.length);
+  credentials.secretKey = "\x00".repeat(credentials.secretKey.length);
   const len = activeAPIKey.length;
   activeAPIKey = "\x00".repeat(len);
   activeAPIKey = null;

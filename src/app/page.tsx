@@ -27,6 +27,7 @@ type Tab = "delegate" | "info_market";
 
 export default function Home() {
   const [apiKey, setApiKey] = useState("");
+  const [secretKey, setSecretKey] = useState("");
   const [strategy, setStrategy] = useState("ping");
   const [status, setStatus] = useState<"idle" | "running" | "destroyed">("idle");
   const [logs, setLogs] = useState<string[]>([]);
@@ -58,7 +59,7 @@ export default function Home() {
   };
 
   const startTask = async () => {
-    if (!apiKey || !enclaveReady) return;
+    if (!apiKey || !secretKey || !enclaveReady) return;
     setStatus("running");
     setLogs([]);
     setAttestation(null);
@@ -66,8 +67,9 @@ export default function Home() {
     addLog("Initializing TEE Enclave connection...");
     await new Promise((r) => setTimeout(r, 400));
 
-    addLog("Encrypting API Key with TEE Enclave Public Key...");
-    const { ciphertext, iv } = await encryptForEnclave(apiKey);
+    addLog("Encrypting credentials with TEE Enclave Public Key...");
+    const credentialPayload = JSON.stringify({ apiKey, secretKey });
+    const { ciphertext, iv } = await encryptForEnclave(credentialPayload);
     const taskId = generateTaskId();
     addLog("Payload encrypted. Sending to Confidential Cloud...");
 
@@ -271,7 +273,7 @@ export default function Home() {
                   <div className="space-y-5 relative">
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
-                        Exchange API Key
+                        Binance API Key
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -283,11 +285,38 @@ export default function Home() {
                             status === "running" || status === "destroyed"
                           }
                           className="w-full bg-black/50 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all disabled:opacity-50"
-                          placeholder="Enter sensitive key..."
+                          placeholder="Binance API Key..."
                           value={apiKey}
                           onChange={(e) => setApiKey(e.target.value)}
                         />
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
+                        Binance Secret Key
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Lock className="w-4 h-4 text-gray-500" />
+                        </div>
+                        <input
+                          type="password"
+                          disabled={
+                            status === "running" || status === "destroyed"
+                          }
+                          className="w-full bg-black/50 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all disabled:opacity-50"
+                          placeholder="Binance Secret Key..."
+                          value={secretKey}
+                          onChange={(e) => setSecretKey(e.target.value)}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1.5">
+                        Keys are encrypted client-side before leaving your browser. Get testnet keys at{" "}
+                        <a href="https://testnet.binance.vision/" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">
+                          testnet.binance.vision
+                        </a>
+                      </p>
                     </div>
 
                     <div>
@@ -302,13 +331,11 @@ export default function Home() {
                         value={strategy}
                         onChange={(e) => setStrategy(e.target.value)}
                       >
-                        <option value="ping">Ping (Check Balance)</option>
-                        <option value="buy_btc">
-                          Market Buy BTC (100 USDT)
-                        </option>
-                        <option value="dca_1hr">
-                          DCA Bot (Self-destruct in 1hr)
-                        </option>
+                        <option value="ping">Check Account Balance</option>
+                        <option value="check_price">Check BTC/USDT Price</option>
+                        <option value="buy_btc">Market Buy BTC (100 USDT)</option>
+                        <option value="sell_btc">Market Sell BTC (100 USDT)</option>
+                        <option value="open_orders">View Open Orders</option>
                       </select>
                     </div>
 
@@ -319,6 +346,7 @@ export default function Home() {
                           status === "running" ||
                           status === "destroyed" ||
                           !apiKey ||
+                          !secretKey ||
                           !enclaveReady
                         }
                         className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold py-3 px-6 rounded-lg shadow-[0_0_20px_rgba(147,51,234,0.4)] transition-all disabled:opacity-50 flex justify-center items-center gap-2"
@@ -351,6 +379,7 @@ export default function Home() {
                       onClick={() => {
                         setStatus("idle");
                         setApiKey("");
+                        setSecretKey("");
                         setLogs([]);
                         setAttestation(null);
                       }}
