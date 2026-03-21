@@ -4,14 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:tee": "DSTACK_SIMULATOR_ENDPOINT=http://localhost:8090 next dev",
-    "simulator": "node scripts/dstack-simulator.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
-    "@phala/dstack-sdk": "^0.5.7",
     "@rainbow-me/rainbowkit": "^2.2.10",
     "@tanstack/react-query": "^5.90.21",
     "clsx": "^2.1.1",

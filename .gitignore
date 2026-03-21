@@ -36,8 +36,8 @@ yarn-error.log*
 # vercel
 .vercel
 
-# Phala Cloud
-phala.toml
+# leftover build artifacts
+/phala-tee
 
 # typescript
 *.tsbuildinfo
