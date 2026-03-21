@@ -12,6 +12,7 @@ import {
   Clock,
   Cpu,
   Monitor,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import type { Attestation } from "@/lib/tee-engine";
@@ -41,9 +42,7 @@ export default function VerifyPage() {
     setResult(null);
 
     try {
-      const res = await fetch(
-        `/api/attestation/${taskId.trim()}?verify=true`
-      );
+      const res = await fetch(`/api/attestation/${taskId.trim()}?verify=true`);
       const data = await res.json();
       if (data.error) {
         setError(data.error);
@@ -68,46 +67,43 @@ export default function VerifyPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0a0a0f] text-gray-200 font-sans">
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-purple-900/20 blur-[120px] pointer-events-none" />
-
-      <nav className="border-b border-white/5 bg-black/20 backdrop-blur-xl px-8 py-4 flex justify-between items-center sticky top-0 z-50">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg">
-            <Zap className="w-5 h-5 text-white" />
+    <main className="min-h-screen bg-[#09090b] text-gray-200 font-sans">
+      <nav className="border-b border-white/[0.06] bg-[#09090b]/80 backdrop-blur-xl px-6 md:px-8 py-3.5 flex justify-between items-center sticky top-0 z-50">
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="p-1.5 bg-white rounded-md">
+            <Zap className="w-4 h-4 text-black" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
+          <span className="text-base font-semibold tracking-tight text-white">
             BurnBroker
           </span>
         </Link>
         <Link
           href="/"
-          className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+          className="text-xs text-gray-500 hover:text-white transition-colors flex items-center gap-1.5"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+          <ArrowLeft className="w-3.5 h-3.5" /> Dashboard
         </Link>
       </nav>
 
       <div className="max-w-2xl mx-auto px-4 py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-            <Shield className="w-8 h-8 text-purple-500" />
-            Attestation Verifier
-          </h1>
-          <p className="text-gray-400 mb-8">
-            Verify that an API key was securely destroyed inside a TEE enclave.
-          </p>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-2.5">
+              <Shield className="w-6 h-6 text-purple-400" />
+              Verify Attestation
+            </h1>
+            <p className="text-sm text-gray-500">
+              Verify that credentials were securely destroyed inside a TEE enclave.
+            </p>
+          </div>
 
           {/* Search */}
-          <div className="flex gap-3 mb-8">
+          <div className="flex gap-2 mb-8">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
               <input
                 type="text"
-                className="w-full bg-black/50 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full bg-[#0f0f13] border border-white/[0.08] rounded-lg py-2.5 pl-10 pr-4 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-purple-500/50"
                 placeholder="Enter Task ID..."
                 value={taskId}
                 onChange={(e) => setTaskId(e.target.value)}
@@ -117,9 +113,9 @@ export default function VerifyPage() {
             <button
               onClick={search}
               disabled={loading || !taskId.trim()}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold px-6 rounded-lg transition-all disabled:opacity-50"
+              className="bg-white text-black font-semibold px-5 rounded-lg text-sm transition-all disabled:opacity-30 hover:bg-gray-100 flex items-center gap-2"
             >
-              {loading ? "..." : "Verify"}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}
             </button>
           </div>
 
@@ -128,10 +124,10 @@ export default function VerifyPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="bg-red-500/10 border border-red-500/20 rounded-xl p-5 flex items-center gap-3 mb-8"
+              className="bg-red-500/5 border border-red-500/10 rounded-lg p-4 flex items-center gap-3 mb-8"
             >
-              <XCircle className="w-5 h-5 text-red-400" />
-              <span className="text-red-300">{error}</span>
+              <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <span className="text-sm text-red-300">{error}</span>
             </motion.div>
           )}
 
@@ -145,40 +141,32 @@ export default function VerifyPage() {
               {/* Verification Banner */}
               {result.verification && (
                 <div
-                  className={`rounded-xl p-5 flex items-start gap-3 ${
+                  className={`rounded-lg p-4 flex items-start gap-3 ${
                     result.verification.verified
-                      ? "bg-emerald-500/10 border border-emerald-500/20"
-                      : "bg-red-500/10 border border-red-500/20"
+                      ? "bg-emerald-500/5 border border-emerald-500/10"
+                      : "bg-red-500/5 border border-red-500/10"
                   }`}
                 >
                   {result.verification.verified ? (
-                    <CheckCircle2 className="w-6 h-6 text-emerald-400 mt-0.5" />
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400 mt-0.5" />
                   ) : (
-                    <XCircle className="w-6 h-6 text-red-400 mt-0.5" />
+                    <XCircle className="w-5 h-5 text-red-400 mt-0.5" />
                   )}
                   <div>
-                    <h3
-                      className={`font-semibold text-lg ${
-                        result.verification.verified
-                          ? "text-emerald-400"
-                          : "text-red-400"
-                      }`}
-                    >
-                      {result.verification.verified
-                        ? "Attestation Verified"
-                        : "Verification Failed"}
+                    <h3 className={`font-semibold text-sm ${
+                      result.verification.verified ? "text-emerald-400" : "text-red-400"
+                    }`}>
+                      {result.verification.verified ? "Attestation Verified" : "Verification Failed"}
                     </h3>
-                    <p className="text-sm text-gray-400 mt-1">
-                      {result.verification.details}
-                    </p>
-                    <div className="mt-2 flex items-center gap-2">
+                    <p className="text-xs text-gray-500 mt-1">{result.verification.details}</p>
+                    <div className="mt-2">
                       {result.verification.source === "phala" ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full">
-                          <Cpu className="w-3 h-3" /> Verified by Phala Cloud
+                        <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-medium">
+                          <Cpu className="w-2.5 h-2.5" /> Phala Cloud
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs bg-yellow-500/20 text-yellow-300 px-2.5 py-1 rounded-full">
-                          <Monitor className="w-3 h-3" /> Local Simulation
+                        <span className="inline-flex items-center gap-1 text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-medium">
+                          <Monitor className="w-2.5 h-2.5" /> Local
                         </span>
                       )}
                     </div>
@@ -186,57 +174,44 @@ export default function VerifyPage() {
                 </div>
               )}
 
-              {/* Enclave Mode Badge */}
+              {/* Enclave Mode */}
               <div className="flex items-center gap-2">
                 {result.enclaveMode === "TEE" ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1.5 rounded-lg">
-                    <Cpu className="w-3.5 h-3.5" /> Hardware TEE (Intel TDX)
+                  <span className="inline-flex items-center gap-1.5 text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-md font-medium">
+                    <Cpu className="w-3 h-3" /> Hardware TEE (Intel TDX)
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 text-xs bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 px-3 py-1.5 rounded-lg">
-                    <Monitor className="w-3.5 h-3.5" /> Simulation Mode
+                  <span className="inline-flex items-center gap-1.5 text-[11px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-md font-medium">
+                    <Monitor className="w-3 h-3" /> Simulation Mode
                   </span>
                 )}
               </div>
 
-              <div className="bg-black/40 border border-white/10 rounded-xl p-6 space-y-4">
+              {/* Details */}
+              <div className="bg-[#0f0f13] border border-white/[0.06] rounded-xl p-5 space-y-3">
                 <DetailRow label="Task ID" value={result.taskId} mono />
                 <DetailRow label="Status" value={result.status} highlight />
                 <DetailRow label="Strategy" value={result.strategyExecuted} />
                 <DetailRow label="Enclave Mode" value={result.enclaveMode} />
                 <DetailRow label="Hardware ID" value={result.hardwareId} mono />
-                <DetailRow
-                  label="Hardware Quote"
-                  value={result.hardwareQuote}
-                  mono
-                />
-                <DetailRow
-                  label="Key SHA-256 Prefix"
-                  value={result.keyHash}
-                  mono
-                />
+                <DetailRow label="Hardware Quote" value={result.hardwareQuote} mono />
+                <DetailRow label="Key Hash" value={result.keyHash} mono />
                 <DetailRow label="Proof" value={result.proof} highlight />
-                <DetailRow
-                  label="Timestamp"
-                  value={new Date(result.enclaveTimestamp).toLocaleString()}
-                />
+                <DetailRow label="Timestamp" value={new Date(result.enclaveTimestamp).toLocaleString()} />
               </div>
 
-              {/* Log trace */}
+              {/* Logs */}
               {result.logs && result.logs.length > 0 && (
-                <div className="bg-[#050508] border border-white/10 rounded-xl overflow-hidden">
-                  <div className="bg-[#0a0a0f] border-b border-white/10 p-3 text-sm font-mono text-gray-400">
-                    Enclave Execution Log
+                <div className="bg-[#0a0a0e] border border-white/[0.06] rounded-xl overflow-hidden">
+                  <div className="border-b border-white/[0.06] px-4 py-2.5 text-xs font-medium text-gray-500">
+                    Execution Log
                   </div>
-                  <div className="p-4 font-mono text-xs space-y-1 max-h-[300px] overflow-y-auto">
-                    {result.logs.map(
-                      (l: { phase: string; message: string }, i: number) => (
-                        <div key={i} className="text-blue-300">
-                          <span className="text-gray-500">[{l.phase}]</span>{" "}
-                          {l.message}
-                        </div>
-                      )
-                    )}
+                  <div className="p-4 font-mono text-[11px] space-y-1 max-h-[300px] overflow-y-auto">
+                    {result.logs.map((l: { phase: string; message: string }, i: number) => (
+                      <div key={i} className="text-gray-500">
+                        <span className="text-gray-700">[{l.phase}]</span> {l.message}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -244,21 +219,18 @@ export default function VerifyPage() {
           )}
 
           {/* History */}
-          <div className="border-t border-white/5 pt-8">
+          <div className="border-t border-white/[0.04] pt-8">
             {!historyLoaded ? (
               <button
                 onClick={loadHistory}
-                className="w-full text-sm text-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center gap-2 py-3"
+                className="w-full text-xs text-gray-600 hover:text-gray-400 transition-colors flex items-center justify-center gap-2 py-3"
               >
-                <Clock className="w-4 h-4" />
-                Load Recent Attestations
+                <Clock className="w-3.5 h-3.5" /> Load Recent Attestations
               </button>
             ) : history.length > 0 ? (
               <div>
-                <h3 className="text-sm font-semibold text-gray-400 mb-4">
-                  Recent Attestations
-                </h3>
-                <div className="space-y-2">
+                <h3 className="text-xs font-medium text-gray-500 mb-3">Recent</h3>
+                <div className="space-y-1.5">
                   {history.map((a) => (
                     <button
                       key={a.taskId}
@@ -268,34 +240,31 @@ export default function VerifyPage() {
                         setError("");
                         setTimeout(() => search(), 0);
                       }}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between hover:bg-white/10 transition-colors text-left"
+                      className="w-full bg-white/[0.02] border border-white/[0.06] rounded-lg p-3 flex items-center justify-between hover:bg-white/[0.04] transition-colors text-left"
                     >
                       <div>
-                        <div className="text-xs font-mono text-gray-300 truncate max-w-[300px]">
+                        <div className="text-xs font-mono text-gray-400 truncate max-w-[300px]">
                           {a.taskId}
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {a.strategyExecuted} &mdash;{" "}
-                          {new Date(a.enclaveTimestamp).toLocaleString()}
+                        <div className="text-[11px] text-gray-600 mt-0.5">
+                          {a.strategyExecuted} &mdash; {new Date(a.enclaveTimestamp).toLocaleString()}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {a.enclaveMode === "TEE" ? (
-                          <Cpu className="w-3 h-3 text-emerald-400" />
+                          <Cpu className="w-3 h-3 text-emerald-500" />
                         ) : (
-                          <Monitor className="w-3 h-3 text-yellow-400" />
+                          <Monitor className="w-3 h-3 text-amber-500" />
                         )}
-                        <span className="text-xs text-emerald-400 font-semibold">
-                          {a.status}
-                        </span>
+                        <span className="text-[10px] text-emerald-400 font-medium">{a.status}</span>
                       </div>
                     </button>
                   ))}
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-600 text-center">
-                No attestations found yet. Delegate a task first.
+              <p className="text-xs text-gray-700 text-center">
+                No attestations yet. Delegate a task first.
               </p>
             )}
           </div>
@@ -317,14 +286,14 @@ function DetailRow({
   highlight?: boolean;
 }) {
   return (
-    <div className="flex justify-between items-start gap-4">
-      <span className="text-xs text-gray-500 uppercase tracking-wider whitespace-nowrap">
+    <div className="flex justify-between items-start gap-4 py-1.5 border-b border-white/[0.03] last:border-0">
+      <span className="text-[11px] text-gray-600 uppercase tracking-wider whitespace-nowrap">
         {label}
       </span>
       <span
-        className={`text-sm text-right break-all ${
-          mono ? "font-mono text-gray-300" : ""
-        } ${highlight ? "text-emerald-400 font-semibold" : "text-gray-300"}`}
+        className={`text-xs text-right break-all ${
+          mono ? "font-mono text-gray-400" : "text-gray-300"
+        } ${highlight ? "text-emerald-400 font-medium" : ""}`}
       >
         {value}
       </span>
