@@ -85,6 +85,8 @@ The user sends their encrypted API credentials into a **Trusted Execution Enviro
 | Delegate API | `src/app/api/delegate/route.ts` | POST: execute TEE task; GET: enclave public key |
 | Attestation API | `src/app/api/attestation/[id]/route.ts` | Retrieve attestation by task ID |
 | Verify Page | `src/app/verify/page.tsx` | Public attestation verification |
+| On-chain Storage | `src/components/OnchainAttestation.tsx` | Store attestation hash on Polygon Amoy |
+| Registry Contract | `contracts/AttestationRegistry.sol` | Solidity contract for immutable on-chain proof |
 | Wallet | `src/components/Providers.tsx` | RainbowKit + wagmi wallet integration |
 
 ---
@@ -111,7 +113,10 @@ A second tab demonstrates the paper's core application: a buyer inspects informa
 ### 5. Attestation Verification
 Each task generates an attestation with quote, key hash, and proof. Verifiable at `/verify`.
 
-### 6. Wallet Connection
+### 6. On-Chain Attestation Storage
+After execution, users can store the attestation hash on **Polygon Amoy** via their connected wallet. The hash is immutable — even if the server goes down, the proof remains on-chain forever.
+
+### 7. Wallet Connection
 RainbowKit + wagmi integration for Polygon Amoy testnet.
 
 ---
@@ -139,6 +144,24 @@ npm run dev
 ```
 
 Open `http://localhost:3000`, enter your Binance testnet API Key + Secret Key, choose a strategy, and click **Delegate & Execute**.
+
+### Deploy AttestationRegistry Contract (Optional)
+
+To enable on-chain attestation storage:
+
+1. Open [Remix IDE](https://remix.ethereum.org/)
+2. Create a new file, paste the contents of `contracts/AttestationRegistry.sol`
+3. Compile with Solidity 0.8.19+
+4. Connect MetaMask to **Polygon Amoy** testnet ([get free MATIC](https://faucet.polygon.technology/))
+5. Deploy the contract
+6. Copy the deployed contract address
+7. Create `.env.local` in the project root:
+
+```
+NEXT_PUBLIC_ATTESTATION_CONTRACT=0xYourContractAddressHere
+```
+
+8. Restart the dev server — the "Store on-chain" button will appear after each attestation
 
 ### Pages
 - `/` — Main dashboard (Key Delegation + Info Market tabs)
@@ -185,6 +208,7 @@ Open `http://localhost:3000`, enter your Binance testnet API Key + Secret Key, c
 - [x] TEE execution with credential destruction
 - [x] Real Binance API integration (testnet)
 - [x] Attestation generation and verification
+- [x] On-chain attestation storage (Polygon Amoy)
 - [x] Arrow's Information Paradox demo
 - [x] Wallet connection (RainbowKit)
 - [x] Paper concepts explained in UI

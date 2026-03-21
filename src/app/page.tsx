@@ -25,6 +25,7 @@ import {
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import HeroSection from "@/components/HeroSection";
 import AttestationCard from "@/components/AttestationCard";
+import OnchainAttestation from "@/components/OnchainAttestation";
 import InfoMarketDemo from "@/components/InfoMarketDemo";
 import { encryptForEnclave, initEnclaveKey, generateTaskId } from "@/lib/crypto";
 import type { Attestation } from "@/lib/tee-engine";
@@ -420,7 +421,10 @@ export default function Home() {
 
                 {/* Attestation */}
                 {attestation && status === "destroyed" && (
-                  <AttestationCard attestation={attestation} />
+                  <div className="space-y-3">
+                    <AttestationCard attestation={attestation} />
+                    <OnchainAttestation attestation={attestation} />
+                  </div>
                 )}
               </div>
 
