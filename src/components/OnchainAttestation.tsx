@@ -33,14 +33,14 @@ export default function OnchainAttestation({ attestation }: { attestation: Attes
 
   if (!contractReady) {
     return (
-      <div className="bg-white/[0.02] border border-white/[0.06] rounded-lg p-3 flex items-start gap-2.5">
+      <div className="glass-card rounded-lg p-3 flex items-start gap-2.5">
         <Link2 className="w-3.5 h-3.5 text-gray-600 mt-0.5 flex-shrink-0" />
         <div>
-          <div className="text-[11px] text-gray-500">
+          <div className="text-[11px] text-gray-500 font-mono">
             On-chain storage available after contract deployment.
           </div>
-          <div className="text-[10px] text-gray-700 mt-0.5">
-            Set <code className="text-gray-500">NEXT_PUBLIC_ATTESTATION_CONTRACT</code> in .env.local
+          <div className="text-[10px] text-gray-700 mt-0.5 font-mono">
+            Set <code className="text-cyan-500/60">NEXT_PUBLIC_ATTESTATION_CONTRACT</code> in .env.local
           </div>
         </div>
       </div>
@@ -49,8 +49,8 @@ export default function OnchainAttestation({ attestation }: { attestation: Attes
 
   if (!isConnected) {
     return (
-      <div className="bg-white/[0.02] border border-white/[0.06] rounded-lg p-3">
-        <div className="text-[11px] text-gray-500 flex items-center gap-2">
+      <div className="glass-card rounded-lg p-3">
+        <div className="text-[11px] text-gray-500 flex items-center gap-2 font-mono">
           <Link2 className="w-3.5 h-3.5" />
           Connect wallet to store attestation on-chain
         </div>
@@ -63,20 +63,20 @@ export default function OnchainAttestation({ attestation }: { attestation: Attes
       <motion.div
         initial={{ opacity: 0, y: 5 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-emerald-500/5 border border-emerald-500/10 rounded-lg p-3"
+        className="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3"
       >
         <div className="flex items-start gap-2.5">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-medium text-emerald-400">Stored on Polygon Amoy</div>
+            <div className="text-xs font-medium text-emerald-400 font-mono">STORED_ON_CHAIN</div>
             <div className="text-[10px] font-mono text-gray-500 mt-1 truncate">{txHash}</div>
             <a
               href={`https://amoy.polygonscan.com/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-300 transition-colors mt-1.5"
+              className="inline-flex items-center gap-1 text-[11px] text-cyan-400 hover:text-cyan-300 transition-colors mt-1.5 font-mono"
             >
-              View on Polygonscan <ExternalLink className="w-2.5 h-2.5" />
+              View on Polygonscan → <ExternalLink className="w-2.5 h-2.5" />
             </a>
           </div>
         </div>
@@ -86,19 +86,19 @@ export default function OnchainAttestation({ attestation }: { attestation: Attes
 
   if (error && submitted) {
     return (
-      <div className="bg-red-500/5 border border-red-500/10 rounded-lg p-3">
+      <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-3">
         <div className="flex items-start gap-2.5">
           <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
           <div>
-            <div className="text-xs text-red-400">Transaction failed</div>
-            <div className="text-[10px] text-gray-600 mt-0.5 break-all">
+            <div className="text-xs text-red-400 font-mono">TX_FAILED</div>
+            <div className="text-[10px] text-gray-600 mt-0.5 break-all font-mono">
               {error.message.slice(0, 120)}
             </div>
             <button
               onClick={() => { setSubmitted(false); handleStore(); }}
-              className="text-[11px] text-purple-400 hover:text-purple-300 mt-1.5 transition-colors"
+              className="text-[11px] text-cyan-400 hover:text-cyan-300 mt-1.5 transition-colors font-mono"
             >
-              Try again
+              → Retry
             </button>
           </div>
         </div>
@@ -110,24 +110,24 @@ export default function OnchainAttestation({ attestation }: { attestation: Attes
     <button
       onClick={handleStore}
       disabled={isPending || isConfirming}
-      className="w-full bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] rounded-lg p-3 text-left transition-colors disabled:opacity-50 group"
+      className="w-full glass-card hover:bg-white/[0.04] rounded-lg p-3 text-left transition-all disabled:opacity-50 group hover:shadow-[0_0_16px_rgba(6,182,212,0.1)]"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           {isPending || isConfirming ? (
-            <Loader2 className="w-3.5 h-3.5 text-purple-400 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
           ) : (
-            <Link2 className="w-3.5 h-3.5 text-gray-500 group-hover:text-purple-400 transition-colors" />
+            <Link2 className="w-3.5 h-3.5 text-gray-500 group-hover:text-cyan-400 transition-colors" />
           )}
-          <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">
+          <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors font-mono">
             {isPending
               ? "Confirm in wallet..."
               : isConfirming
               ? "Confirming on-chain..."
-              : "Store attestation on-chain"}
+              : "Store attestation on-chain →"}
           </span>
         </div>
-        <span className="text-[10px] text-gray-600">Polygon Amoy</span>
+        <span className="text-[10px] text-cyan-500/30 font-mono">POLYGON_AMOY</span>
       </div>
     </button>
   );
