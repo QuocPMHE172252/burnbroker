@@ -34,6 +34,7 @@ import AttestationCard from "@/components/AttestationCard";
 import OnchainAttestation from "@/components/OnchainAttestation";
 import InfoMarketDemo from "@/components/InfoMarketDemo";
 import VerifyPanel from "@/components/VerifyPanel";
+import PriceTicker from "@/components/PriceTicker";
 import { encryptForEnclave, initEnclaveKey, generateTaskId } from "@/lib/crypto";
 import type { Attestation } from "@/lib/tee-engine";
 
@@ -227,6 +228,8 @@ export default function Home() {
               BurnBroker
             </span>
           </div>
+
+          <PriceTicker />
 
           <div className="flex items-center gap-3 text-sm">
             {enclaveMode && (
