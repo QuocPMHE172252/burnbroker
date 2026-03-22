@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Loader2, AlertCircle } from "lucide-react";
 
 interface Price {
   symbol: string;
@@ -18,18 +18,30 @@ function formatPrice(price: number): string {
 export default function PriceTicker() {
   const [prices, setPrices] = useState<Price[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [flash, setFlash] = useState<Record<string, "up" | "down" | null>>({});
 
   const fetchPrices = useCallback(async () => {
+    setError(null);
     try {
-      const res = await fetch("/api/prices");
-      if (!res.ok) return;
-      const data: Price[] = await res.json();
-      if (!Array.isArray(data)) return;
+      const res = await fetch("/api/prices", { cache: "no-store" });
+      const body = await res.json();
+
+      if (!res.ok) {
+        setPrices([]);
+        setError(typeof body?.error === "string" ? body.error : "Price feed unavailable");
+        return;
+      }
+
+      if (!Array.isArray(body)) {
+        setPrices([]);
+        setError("Invalid response");
+        return;
+      }
 
       setPrices((prev) => {
         const newFlash: Record<string, "up" | "down" | null> = {};
-        for (const p of data) {
+        for (const p of body as Price[]) {
           const old = prev.find((o) => o.symbol === p.symbol);
           if (old && p.price !== old.price) {
             newFlash[p.symbol] = p.price > old.price ? "up" : "down";
@@ -39,17 +51,19 @@ export default function PriceTicker() {
           setFlash(newFlash);
           setTimeout(() => setFlash({}), 800);
         }
-        return data;
+        return body as Price[];
       });
-      setLoading(false);
     } catch {
+      setPrices([]);
+      setError("Network error");
+    } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     fetchPrices();
-    const interval = setInterval(fetchPrices, 10000);
+    const interval = setInterval(fetchPrices, 15000);
     return () => clearInterval(interval);
   }, [fetchPrices]);
 
@@ -58,6 +72,17 @@ export default function PriceTicker() {
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-card">
         <Loader2 className="w-3 h-3 text-cyan-400 animate-spin" />
         <span className="text-xs font-mono text-gray-500">Loading prices...</span>
+      </div>
+    );
+  }
+
+  if (error && prices.length === 0) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-card border-amber-500/20 max-w-[200px] sm:max-w-none">
+        <AlertCircle className="w-3 h-3 text-amber-400 shrink-0" />
+        <span className="text-[11px] font-mono text-amber-400/90 truncate" title={error}>
+          {error}
+        </span>
       </div>
     );
   }
