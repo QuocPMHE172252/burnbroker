@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 
 interface Price {
   symbol: string;
@@ -17,6 +17,7 @@ function formatPrice(price: number): string {
 
 export default function PriceTicker() {
   const [prices, setPrices] = useState<Price[]>([]);
+  const [loading, setLoading] = useState(true);
   const [flash, setFlash] = useState<Record<string, "up" | "down" | null>>({});
 
   const fetchPrices = useCallback(async () => {
@@ -40,55 +41,67 @@ export default function PriceTicker() {
         }
         return data;
       });
+      setLoading(false);
     } catch {
-      /* silent */
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     fetchPrices();
-    const interval = setInterval(fetchPrices, 8000);
+    const interval = setInterval(fetchPrices, 10000);
     return () => clearInterval(interval);
   }, [fetchPrices]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-card">
+        <Loader2 className="w-3 h-3 text-cyan-400 animate-spin" />
+        <span className="text-xs font-mono text-gray-500">Loading prices...</span>
+      </div>
+    );
+  }
 
   if (prices.length === 0) return null;
 
   return (
-    <div className="hidden md:flex items-center gap-3">
-      {prices.map((p) => (
+    <div className="flex items-center gap-1 sm:gap-2">
+      {prices.map((p, i) => (
         <div
           key={p.symbol}
-          className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors duration-300 ${
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg glass-card transition-colors duration-300 ${
+            i > 0 ? "hidden lg:flex" : ""
+          } ${
             flash[p.symbol] === "up"
-              ? "bg-emerald-500/10"
+              ? "!bg-emerald-500/10 !border-emerald-500/20"
               : flash[p.symbol] === "down"
-              ? "bg-red-500/10"
-              : "bg-transparent"
+              ? "!bg-red-500/10 !border-red-500/20"
+              : ""
           }`}
         >
-          <span className="text-[10px] font-mono text-gray-500 font-medium">
+          <span className="text-xs font-mono text-gray-400 font-semibold">
             {p.symbol}
           </span>
           <span
-            className={`text-[11px] font-mono font-semibold transition-colors duration-300 ${
+            className={`text-sm font-mono font-bold transition-colors duration-300 ${
               flash[p.symbol] === "up"
                 ? "text-emerald-400"
                 : flash[p.symbol] === "down"
                 ? "text-red-400"
-                : "text-gray-300"
+                : "text-white"
             }`}
           >
             ${formatPrice(p.price)}
           </span>
           <span
-            className={`text-[10px] font-mono font-medium flex items-center gap-0.5 ${
-              p.change >= 0 ? "text-emerald-400/70" : "text-red-400/70"
+            className={`text-xs font-mono font-semibold flex items-center gap-0.5 ${
+              p.change >= 0 ? "text-emerald-400" : "text-red-400"
             }`}
           >
             {p.change >= 0 ? (
-              <TrendingUp className="w-2.5 h-2.5" />
+              <TrendingUp className="w-3 h-3" />
             ) : (
-              <TrendingDown className="w-2.5 h-2.5" />
+              <TrendingDown className="w-3 h-3" />
             )}
             {p.change >= 0 ? "+" : ""}
             {p.change.toFixed(2)}%

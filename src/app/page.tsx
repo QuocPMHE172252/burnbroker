@@ -224,7 +224,7 @@ export default function Home() {
               </div>
               <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg blur-md opacity-40" />
             </div>
-            <span className="text-base font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
+            <span className="text-lg font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
               BurnBroker
             </span>
           </div>
@@ -269,13 +269,13 @@ export default function Home() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-all whitespace-nowrap relative ${
+              className={`flex items-center gap-2 px-5 py-3 text-[15px] font-medium transition-all whitespace-nowrap relative ${
                 tab === t.id
                   ? "text-cyan-400 tab-active"
                   : "text-gray-500 hover:text-gray-300"
               }`}
             >
-              <t.icon className="w-3.5 h-3.5" />
+              <t.icon className="w-4 h-4" />
               {t.label}
             </button>
           ))}
@@ -308,14 +308,14 @@ export default function Home() {
                     color: enclaveMode === "TEE" ? "cyan" : "amber",
                   },
                 ].map((stat) => (
-                  <div key={stat.label} className="glass-card rounded-lg px-4 py-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <stat.icon className={`w-3 h-3 text-${stat.color}-400`} />
-                      <span className="text-[10px] text-gray-500 uppercase tracking-wider font-medium">
+                  <div key={stat.label} className="glass-card rounded-lg px-4 py-3.5">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <stat.icon className={`w-3.5 h-3.5 text-${stat.color}-400`} />
+                      <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">
                         {stat.label}
                       </span>
                     </div>
-                    <div className="text-sm font-semibold text-gray-200">{stat.value}</div>
+                    <div className="text-base font-semibold text-gray-200">{stat.value}</div>
                   </div>
                 ))}
               </div>
@@ -327,13 +327,13 @@ export default function Home() {
                     <div className="rounded-[11px] bg-[#0a0a16] p-6">
                       <div className="flex items-center justify-between mb-6">
                         <div>
-                          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                            <Shield className="w-5 h-5 text-cyan-400" />
-                            Delegate Credentials
-                          </h2>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Encrypted client-side before transmission
-                          </p>
+                        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                          <Shield className="w-5 h-5 text-cyan-400" />
+                          Delegate Credentials
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Encrypted client-side before transmission
+                        </p>
                         </div>
                         <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 rounded-md px-2 py-1">
                           <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
@@ -345,16 +345,16 @@ export default function Home() {
 
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-xs font-medium text-gray-400 mb-1.5">
-                            API Key
-                          </label>
+                        <label className="block text-sm font-medium text-gray-400 mb-1.5">
+                          API Key
+                        </label>
                           <div className="relative">
                             <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
                             <input
                               type="password"
                               disabled={status !== "idle"}
-                              className="w-full bg-black/50 border border-white/[0.08] rounded-lg py-2.5 pl-10 pr-4 text-sm text-white placeholder-gray-600 transition-all disabled:opacity-40"
-                              placeholder="Enter your Binance API key"
+                            className="w-full bg-black/50 border border-white/[0.08] rounded-lg py-3 pl-10 pr-4 text-base text-white placeholder-gray-600 transition-all disabled:opacity-40"
+                            placeholder="Enter your Binance API key"
                               value={apiKey}
                               onChange={(e) => setApiKey(e.target.value)}
                             />
@@ -362,16 +362,16 @@ export default function Home() {
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-gray-400 mb-1.5">
-                            Secret Key
-                          </label>
+                        <label className="block text-sm font-medium text-gray-400 mb-1.5">
+                          Secret Key
+                        </label>
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
                             <input
                               type="password"
                               disabled={status !== "idle"}
-                              className="w-full bg-black/50 border border-white/[0.08] rounded-lg py-2.5 pl-10 pr-4 text-sm text-white placeholder-gray-600 transition-all disabled:opacity-40"
-                              placeholder="Enter your Binance secret key"
+                            className="w-full bg-black/50 border border-white/[0.08] rounded-lg py-3 pl-10 pr-4 text-base text-white placeholder-gray-600 transition-all disabled:opacity-40"
+                            placeholder="Enter your Binance secret key"
                               value={secretKey}
                               onChange={(e) => setSecretKey(e.target.value)}
                             />
@@ -392,12 +392,12 @@ export default function Home() {
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-gray-400 mb-1.5">
-                            Strategy
-                          </label>
+                        <label className="block text-sm font-medium text-gray-400 mb-1.5">
+                          Strategy
+                        </label>
                           <select
                             disabled={status !== "idle"}
-                            className="w-full bg-black/50 border border-white/[0.08] rounded-lg py-2.5 px-3 text-sm text-white transition-all appearance-none cursor-pointer disabled:opacity-40"
+                            className="w-full bg-black/50 border border-white/[0.08] rounded-lg py-3 px-3 text-base text-white transition-all appearance-none cursor-pointer disabled:opacity-40"
                             value={strategy}
                             onChange={(e) => setStrategy(e.target.value)}
                           >
@@ -414,7 +414,7 @@ export default function Home() {
                             <button
                               onClick={startTask}
                               disabled={!apiKey || !secretKey || !enclaveReady}
-                              className="flex-1 btn-gradient text-white font-semibold py-2.5 px-5 rounded-lg flex justify-center items-center gap-2 text-sm"
+                              className="flex-1 btn-gradient text-white font-semibold py-3 px-5 rounded-lg flex justify-center items-center gap-2 text-[15px]"
                             >
                               Delegate &amp; Execute <ArrowRight className="w-3.5 h-3.5" />
                             </button>
@@ -422,7 +422,7 @@ export default function Home() {
                           {status === "running" && (
                             <button
                               onClick={panicRevoke}
-                              className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-semibold py-2.5 px-5 rounded-lg transition-all flex justify-center items-center gap-2 text-sm"
+                              className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-semibold py-3 px-5 rounded-lg transition-all flex justify-center items-center gap-2 text-[15px]"
                             >
                               <Trash2 className="w-3.5 h-3.5" /> Emergency Revoke
                             </button>
@@ -430,7 +430,7 @@ export default function Home() {
                           {status === "destroyed" && (
                             <button
                               onClick={resetForm}
-                              className="flex-1 glass-card text-gray-300 font-semibold py-2.5 px-5 rounded-lg hover:bg-white/5 transition-all flex justify-center items-center gap-2 text-sm"
+                              className="flex-1 glass-card text-gray-300 font-semibold py-3 px-5 rounded-lg hover:bg-white/5 transition-all flex justify-center items-center gap-2 text-[15px]"
                             >
                               New Delegation
                             </button>
@@ -450,8 +450,8 @@ export default function Home() {
                   {/* Security Info */}
                   {status === "idle" && (
                     <div className="glass-card rounded-xl p-5">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-1.5">
-                        <ShieldCheck className="w-3 h-3 text-cyan-500/50" />
+                      <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-1.5">
+                        <ShieldCheck className="w-3.5 h-3.5 text-cyan-500/50" />
                         Security Guarantees
                       </h3>
                       <div className="space-y-2.5">
@@ -463,7 +463,7 @@ export default function Home() {
                         ].map((item) => (
                           <div key={item.text} className="flex items-start gap-2.5">
                             <item.icon className={`w-3.5 h-3.5 text-${item.color}-500/50 mt-0.5 flex-shrink-0`} />
-                            <span className="text-xs text-gray-500">{item.text}</span>
+                            <span className="text-sm text-gray-500">{item.text}</span>
                           </div>
                         ))}
                       </div>
@@ -490,7 +490,7 @@ export default function Home() {
                             status === "running" ? "bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.6)]" :
                             status === "destroyed" ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" : "bg-gray-700"
                           }`} />
-                          <span className="text-sm font-mono font-medium text-gray-400">
+                          <span className="text-base font-mono font-medium text-gray-400">
                             EXECUTION_MONITOR
                           </span>
                         </div>
@@ -516,8 +516,8 @@ export default function Home() {
                               <div className="absolute inset-0 w-16 h-16 rounded-full bg-cyan-500/5 animate-ping" />
                             </div>
                             <div>
-                              <p className="text-sm font-mono text-gray-500">AWAITING_DELEGATION</p>
-                              <p className="text-xs text-gray-700 mt-1">
+                            <p className="text-base font-mono text-gray-500">AWAITING_DELEGATION</p>
+                            <p className="text-sm text-gray-700 mt-1">
                                 Enter credentials and select a strategy to begin
                               </p>
                             </div>
@@ -540,7 +540,7 @@ export default function Home() {
                                   <PhaseIcon status={phase.status} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className={`text-sm font-mono ${
+                                  <div className={`text-base font-mono ${
                                     phase.status === "done" ? "text-gray-400" :
                                     phase.status === "active" ? "text-cyan-300 font-medium" :
                                     phase.status === "error" ? "text-red-400" :
@@ -668,7 +668,7 @@ export default function Home() {
             >
               {/* Headline */}
               <div className="max-w-3xl mx-auto text-center mb-14">
-                <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-5 leading-[1.1]">
+                <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-5 leading-[1.1]">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-cyan-400">
                     Execute Once.
                   </span>
@@ -677,7 +677,7 @@ export default function Home() {
                     Destroy Forever.
                   </span>
                 </h1>
-                <p className="text-sm sm:text-base text-gray-400 max-w-xl mx-auto leading-relaxed">
+                <p className="text-base sm:text-lg text-gray-400 max-w-xl mx-auto leading-relaxed">
                   BurnBroker implements Conditional Recall — a game-theoretic framework
                   where TEEs enable credible commitment to forgetting information after use.
                 </p>
@@ -713,10 +713,10 @@ export default function Home() {
                       <div className={`text-[10px] font-mono text-${step.color}-500/60 mb-2`}>
                         {step.num}
                       </div>
-                      <div className="text-sm font-semibold text-white mb-1 font-mono">
+                      <div className="text-base font-semibold text-white mb-1 font-mono">
                         {step.title}
                       </div>
-                      <div className="text-xs text-gray-500 leading-relaxed">
+                      <div className="text-sm text-gray-500 leading-relaxed">
                         {step.desc}
                       </div>
                       {i < 4 && (
@@ -763,8 +763,8 @@ export default function Home() {
                       <div className={`rounded-xl bg-gradient-to-br ${item.gradient} p-px hover:shadow-[0_0_30px_rgba(6,182,212,0.1)] transition-shadow`}>
                         <div className="rounded-[11px] bg-[#0a0a16] p-6 h-full">
                           <item.icon className="w-5 h-5 text-gray-400 mb-4" />
-                          <h3 className="text-sm font-semibold text-white mb-2">{item.title}</h3>
-                          <p className="text-xs text-gray-500 leading-relaxed">{item.desc}</p>
+                          <h3 className="text-base font-semibold text-white mb-2">{item.title}</h3>
+                          <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
                         </div>
                       </div>
                     </motion.div>
