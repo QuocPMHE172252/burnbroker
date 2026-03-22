@@ -3,31 +3,38 @@ import { NextResponse } from "next/server";
 const BINANCE_API = "https://api.binance.com/api/v3/ticker/24hr";
 const SYMBOLS = ["BTCUSDT", "ETHUSDT", "BNBUSDT"];
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
-    const params = new URLSearchParams({
-      symbols: JSON.stringify(SYMBOLS),
-    });
-
-    const res = await fetch(`${BINANCE_API}?${params}`, {
-      next: { revalidate: 5 },
-    });
-
-    if (!res.ok) {
-      return NextResponse.json({ error: "Binance API error" }, { status: 502 });
-    }
-
-    const data = await res.json();
-
-    const prices = data.map(
-      (t: { symbol: string; lastPrice: string; priceChangePercent: string }) => ({
-        symbol: t.symbol.replace("USDT", ""),
-        price: parseFloat(t.lastPrice),
-        change: parseFloat(t.priceChangePercent),
+    const results = await Promise.allSettled(
+      SYMBOLS.map(async (symbol) => {
+        const res = await fetch(`${BINANCE_API}?symbol=${symbol}`, {
+          signal: AbortSignal.timeout(8000),
+        });
+        if (!res.ok) throw new Error(`${symbol}: ${res.status}`);
+        return res.json();
       })
     );
 
-    return NextResponse.json(prices);
+    const prices = results
+      .filter(
+        (r): r is PromiseFulfilledResult<{ symbol: string; lastPrice: string; priceChangePercent: string }> =>
+          r.status === "fulfilled"
+      )
+      .map((r) => ({
+        symbol: r.value.symbol.replace("USDT", ""),
+        price: parseFloat(r.value.lastPrice),
+        change: parseFloat(r.value.priceChangePercent),
+      }));
+
+    if (prices.length === 0) {
+      return NextResponse.json({ error: "No prices available" }, { status: 502 });
+    }
+
+    return NextResponse.json(prices, {
+      headers: { "Cache-Control": "public, s-maxage=5, stale-while-revalidate=10" },
+    });
   } catch {
     return NextResponse.json({ error: "Failed to fetch prices" }, { status: 500 });
   }
