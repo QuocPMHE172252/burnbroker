@@ -119,6 +119,85 @@ After execution, users can store the attestation hash on **Polygon Amoy** via th
 ### 7. Wallet Connection
 RainbowKit + wagmi integration for Polygon Amoy testnet.
 
+### 8. Live Price Ticker
+The navbar shows live **BTC / ETH / BNB** prices (24h change). Data is fetched server-side from Binance when available, with a CoinGecko fallback if Binance is unreachable from the hosting region.
+
+---
+
+## User Guide
+
+How to use BurnBroker in the browser (local or deployed).
+
+### Before you start
+
+1. **Binance Testnet keys (recommended for demos)**  
+   - Go to [testnet.binance.vision](https://testnet.binance.vision/) and sign in.  
+   - Generate an **API Key** and **Secret Key**.  
+   - Enable the permissions your strategy needs (e.g. spot trading for buy/sell).  
+   - Use **testnet keys only** when experimenting — never paste production secrets into a demo.
+
+2. **Wallet (optional for delegation, required for on-chain storage)**  
+   - **Delegate**, **Info Market**, and **Verify** work without a wallet.  
+   - Connect a wallet only if you want to **store the attestation hash on Polygon Amoy** after a successful run.
+
+---
+
+### Tab: Delegate (main flow)
+
+1. Wait until the enclave indicator shows **Simulation** (or **TEE** on real hardware).  
+2. Enter your **API Key** and **Secret Key** (testnet).  
+3. Choose a **Strategy**:
+   - Check Account Balance  
+   - Check BTC/USDT Price  
+   - Market Buy / Sell BTC (testnet)  
+   - View Open Orders  
+4. Click **Delegate & Execute**.  
+5. Watch the **Execution Monitor**: encrypt → transmit → decrypt → Binance call → wipe → attestation.  
+6. When finished, review **Attestation Proof** (task ID, hashes, proof).  
+7. Optionally click **Store on-chain** (needs wallet, Amoy MATIC, and `NEXT_PUBLIC_ATTESTATION_CONTRACT` set — see below).
+
+**Emergency Revoke** (while running): stops the demo flow in the UI. For real safety, also **revoke or delete** the API key on Binance if it was exposed.
+
+---
+
+### Tab: Info Market
+
+Demonstrates **Arrow’s Information Paradox**: enter a “seller secret”, simulate inspection inside the TEE, then **Accept & Buy** or **Reject & Forget**. This is a **concept demo**, separate from the Binance delegation flow.
+
+---
+
+### Tab: Verify
+
+1. Copy the **Task ID** from a completed attestation (or pick one from **Load Recent Attestations** if available).  
+2. Paste it and click **Verify**.  
+3. Inspect status, strategy, enclave mode, logs, and proof.
+
+> A standalone verification page also exists at **`/verify`** with the same purpose.
+
+---
+
+### Tab: About
+
+Read the **Conditional Recall** summary, the **burn pipeline**, research links, and tech tags.
+
+---
+
+### Navbar extras
+
+- **Paper** — link to the research paper.  
+- **GitHub** — source code.  
+- **Connect** — wallet (for on-chain attestation).  
+- **Live prices** — BTC / ETH / BNB ticker (may use a fallback price API).
+
+---
+
+### On-chain attestation (optional)
+
+1. Deploy `AttestationRegistry.sol` (e.g. via Remix) to **Polygon Amoy**.  
+2. Set `NEXT_PUBLIC_ATTESTATION_CONTRACT=<address>` in `.env.local` (or Vercel env vars) and redeploy.  
+3. Connect wallet to **Polygon Amoy**, fund with test **MATIC** from a faucet.  
+4. After delegation completes, use **Store on-chain** and confirm the transaction.
+
 ---
 
 ## Running Locally
@@ -164,8 +243,8 @@ NEXT_PUBLIC_ATTESTATION_CONTRACT=0xYourContractAddressHere
 8. Restart the dev server — the "Store on-chain" button will appear after each attestation
 
 ### Pages
-- `/` — Main dashboard (Key Delegation + Info Market tabs)
-- `/verify` — Attestation verification page
+- `/` — Main app: **Delegate**, **Info Market**, **Verify**, and **About** tabs (plus live price ticker in the navbar)
+- `/verify` — Standalone attestation verification page (same flow as the **Verify** tab)
 
 ---
 
