@@ -172,6 +172,8 @@ Demonstrates **Arrow’s Information Paradox**: enter a “seller secret”, sim
 2. Paste it and click **Verify**.  
 3. Inspect status, strategy, enclave mode, logs, and proof.
 
+**Serverless note (e.g. Vercel):** Attestations are stored in **per-instance server memory**, so the API may return “not found” on a different instance than the one that ran your job. After a successful Delegate or Info Market run, the app saves a copy in **`sessionStorage`** in your browser; **Verify** falls back to that so lookup works **in the same tab/session** without a database. For durable, public proof, use **on-chain** storage or another persistence layer.
+
 > A standalone verification page also exists at **`/verify`** with the same purpose.
 
 ---

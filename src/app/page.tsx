@@ -27,6 +27,7 @@ import {
   Activity,
   Wifi,
   Database,
+  Copy,
   type LucideIcon,
 } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -36,6 +37,7 @@ import InfoMarketDemo from "@/components/InfoMarketDemo";
 import VerifyPanel from "@/components/VerifyPanel";
 import PriceTicker from "@/components/PriceTicker";
 import { encryptForEnclave, initEnclaveKey, generateTaskId } from "@/lib/crypto";
+import { saveAttestationToSession } from "@/lib/attestation-storage";
 import type { Attestation } from "@/lib/tee-engine";
 
 type Tab = "delegate" | "info_market" | "verify" | "about";
@@ -104,7 +106,15 @@ export default function Home() {
   const [enclaveMode, setEnclaveMode] = useState<"TEE" | "SIMULATION" | null>(null);
   const [phases, setPhases] = useState<ExecutionPhase[]>(INITIAL_PHASES);
   const [showRawLogs, setShowRawLogs] = useState(false);
+  const [copiedMonitorTaskId, setCopiedMonitorTaskId] = useState(false);
   const logsEndRef = useRef<HTMLDivElement>(null);
+
+  const copyMonitorTaskId = () => {
+    if (!attestation) return;
+    navigator.clipboard.writeText(attestation.taskId);
+    setCopiedMonitorTaskId(true);
+    setTimeout(() => setCopiedMonitorTaskId(false), 2000);
+  };
 
   useEffect(() => {
     fetch("/api/delegate")
@@ -138,6 +148,7 @@ export default function Home() {
     setAttestation(null);
     setPhases(INITIAL_PHASES);
     setShowRawLogs(false);
+    setCopiedMonitorTaskId(false);
 
     updatePhase("encrypt", "active");
     addLog("Encrypting credentials with TEE Enclave Public Key...");
@@ -186,6 +197,7 @@ export default function Home() {
 
       updatePhase("attest", "done");
       setAttestation(data);
+      saveAttestationToSession(data);
       setStatus("destroyed");
     } catch {
       addLog("ERROR: Failed to communicate with TEE backend.");
@@ -210,6 +222,7 @@ export default function Home() {
     setAttestation(null);
     setPhases(INITIAL_PHASES);
     setShowRawLogs(false);
+    setCopiedMonitorTaskId(false);
   };
 
   return (
@@ -577,13 +590,33 @@ export default function Home() {
                                     <div className="text-xs text-gray-500 mt-1">
                                       Strategy executed. All credentials permanently destroyed.
                                     </div>
-                                    <div className="flex items-center gap-3 mt-2">
-                                      <span className="text-[10px] font-mono text-gray-600">
-                                        TX: {attestation.taskId.slice(0, 16)}...
-                                      </span>
-                                      <span className="text-[10px] font-mono text-emerald-500/60">
-                                        {attestation.proof}
-                                      </span>
+                                    <div className="mt-3 space-y-2">
+                                      <div className="bg-black/30 rounded-lg p-2.5 border border-white/[0.06]">
+                                        <div className="flex items-center justify-between gap-2 mb-1">
+                                          <span className="text-[10px] text-cyan-500/50 font-mono">
+                                            TASK_ID
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={copyMonitorTaskId}
+                                            className="text-gray-600 hover:text-cyan-400 transition-colors shrink-0"
+                                            title="Copy task ID"
+                                          >
+                                            <Copy className="w-3 h-3" />
+                                          </button>
+                                        </div>
+                                        <div className="text-[11px] font-mono text-gray-400 break-all leading-relaxed">
+                                          {copiedMonitorTaskId
+                                            ? "Copied to clipboard"
+                                            : attestation.taskId}
+                                        </div>
+                                      </div>
+                                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                        <span className="text-[10px] text-gray-600 font-mono">PROOF</span>
+                                        <span className="text-[10px] font-mono text-emerald-500/80 break-all">
+                                          {attestation.proof}
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>

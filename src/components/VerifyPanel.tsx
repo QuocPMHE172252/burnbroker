@@ -13,6 +13,8 @@ import {
   Loader2,
 } from "lucide-react";
 import type { Attestation } from "@/lib/tee-engine";
+import { getAttestationFromSession, listAttestationsFromSession } from "@/lib/attestation-storage";
+import { verifyQuote } from "@/lib/verify-attestation";
 
 interface Verification {
   verified: boolean;
@@ -22,6 +24,8 @@ interface Verification {
 
 interface AttestationWithVerification extends Attestation {
   verification?: Verification;
+  /** True when loaded from browser session (serverless has no shared server memory). */
+  loadedFromSession?: boolean;
 }
 
 function DetailRow({
@@ -60,34 +64,79 @@ export default function VerifyPanel() {
   const [historyLoaded, setHistoryLoaded] = useState(false);
 
   const search = async () => {
-    if (!taskId.trim()) return;
+    const id = taskId.trim();
+    if (!id) return;
     setLoading(true);
     setError("");
     setResult(null);
 
     try {
-      const res = await fetch(`/api/attestation/${taskId.trim()}?verify=true`);
+      const res = await fetch(
+        `/api/attestation/${encodeURIComponent(id)}?verify=true`
+      );
       const data = await res.json();
-      if (data.error) {
-        setError(data.error);
-      } else {
-        setResult(data);
+
+      if (res.ok && data?.taskId && !data.error) {
+        setResult(data as AttestationWithVerification);
+        return;
       }
+
+      const cached = getAttestationFromSession(id);
+      if (cached) {
+        const verification = await verifyQuote(
+          cached.hardwareQuote,
+          cached.enclaveMode
+        );
+        setResult({
+          ...cached,
+          verification,
+          loadedFromSession: true,
+        });
+        return;
+      }
+
+      setError(
+        typeof data?.error === "string" ? data.error : "Attestation not found"
+      );
     } catch {
-      setError("Failed to connect to server.");
+      const cached = getAttestationFromSession(taskId.trim());
+      if (cached) {
+        const verification = await verifyQuote(
+          cached.hardwareQuote,
+          cached.enclaveMode
+        );
+        setResult({
+          ...cached,
+          verification,
+          loadedFromSession: true,
+        });
+      } else {
+        setError("Failed to connect to server.");
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const loadHistory = async () => {
+    const fromSession = listAttestationsFromSession();
     try {
       const res = await fetch("/api/attestation/all");
       const data = await res.json();
-      if (Array.isArray(data)) setHistory(data);
-      setHistoryLoaded(true);
+      const fromApi = Array.isArray(data) ? data : [];
+      const map = new Map<string, Attestation>();
+      for (const a of [...fromApi, ...fromSession]) {
+        map.set(a.taskId, a);
+      }
+      setHistory(
+        Array.from(map.values()).sort(
+          (a, b) => b.enclaveTimestamp - a.enclaveTimestamp
+        )
+      );
     } catch {
-      setHistoryLoaded(true);
+      setHistory(fromSession);
     }
+    setHistoryLoaded(true);
   };
 
   return (
@@ -143,6 +192,14 @@ export default function VerifyPanel() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4 mb-8"
         >
+          {result.loadedFromSession && (
+            <div className="rounded-lg p-3 bg-amber-500/5 border border-amber-500/20 text-xs text-amber-200/90">
+              Loaded from <strong>this browser session</strong> (saved when you ran Delegate /
+              Info Market here). On serverless hosting, the server cannot always find the same
+              attestation by ID — use Verify on the same device after delegating, or rely on
+              on-chain storage.
+            </div>
+          )}
           {result.verification && (
             <div
               className={`rounded-lg p-4 flex items-start gap-3 ${

@@ -11,6 +11,7 @@ import {
   FileText,
 } from "lucide-react";
 import { encryptForEnclave, generateTaskId } from "@/lib/crypto";
+import { saveAttestationToSession } from "@/lib/attestation-storage";
 import AttestationCard from "./AttestationCard";
 import type { Attestation } from "@/lib/tee-engine";
 
@@ -83,6 +84,7 @@ export default function InfoMarketDemo() {
       }
 
       setAttestation(data);
+      saveAttestationToSession(data);
       addLog("Attestation generated. Information provably forgotten.");
       setPhase("done");
     } catch {
