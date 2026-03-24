@@ -9,10 +9,10 @@ export async function GET(
   const { id } = await params;
 
   if (id === "all") {
-    return NextResponse.json(getAllAttestations());
+    return NextResponse.json(await getAllAttestations());
   }
 
-  const attestation = getAttestation(id);
+  const attestation = await getAttestation(id);
   if (!attestation) {
     return NextResponse.json(
       { error: "Attestation not found" },

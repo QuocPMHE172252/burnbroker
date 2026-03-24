@@ -1,6 +1,8 @@
 import crypto from "crypto";
+import { Prisma } from "@prisma/client";
 import { getQuote, deriveKey, getEnclaveMode } from "./dstack";
 import { executeStrategy, type ExchangeResult } from "./exchange-client";
+import { prisma } from "./prisma";
 
 export interface DelegateRequest {
   taskId: string;
@@ -28,8 +30,6 @@ export interface Attestation {
   logs: TEELog[];
 }
 
-const attestationStore = new Map<string, Attestation>();
-
 let cachedKey: Buffer | null = null;
 
 async function getServerKey(): Promise<Buffer> {
@@ -51,6 +51,61 @@ function hashKey(key: string): string {
 
 function log(logs: TEELog[], phase: string, message: string) {
   logs.push({ timestamp: Date.now(), phase, message });
+}
+
+async function persistAttestation(attestation: Attestation): Promise<void> {
+  await prisma.attestation.upsert({
+    where: { taskId: attestation.taskId },
+    create: {
+      taskId: attestation.taskId,
+      status: attestation.status,
+      strategyExecuted: attestation.strategyExecuted,
+      enclaveTimestamp: BigInt(attestation.enclaveTimestamp),
+      hardwareQuote: attestation.hardwareQuote,
+      hardwareId: attestation.hardwareId,
+      keyHash: attestation.keyHash,
+      proof: attestation.proof,
+      enclaveMode: attestation.enclaveMode,
+      logs: attestation.logs as unknown as Prisma.InputJsonValue,
+    },
+    update: {
+      status: attestation.status,
+      strategyExecuted: attestation.strategyExecuted,
+      enclaveTimestamp: BigInt(attestation.enclaveTimestamp),
+      hardwareQuote: attestation.hardwareQuote,
+      hardwareId: attestation.hardwareId,
+      keyHash: attestation.keyHash,
+      proof: attestation.proof,
+      enclaveMode: attestation.enclaveMode,
+      logs: attestation.logs as unknown as Prisma.InputJsonValue,
+    },
+  });
+}
+
+function fromDb(row: {
+  taskId: string;
+  status: string;
+  strategyExecuted: string;
+  enclaveTimestamp: bigint;
+  hardwareQuote: string;
+  hardwareId: string;
+  keyHash: string;
+  proof: string;
+  enclaveMode: string;
+  logs: unknown;
+}): Attestation {
+  return {
+    taskId: row.taskId,
+    status: row.status as Attestation["status"],
+    strategyExecuted: row.strategyExecuted,
+    enclaveTimestamp: Number(row.enclaveTimestamp),
+    hardwareQuote: row.hardwareQuote,
+    hardwareId: row.hardwareId,
+    keyHash: row.keyHash,
+    proof: row.proof,
+    enclaveMode: row.enclaveMode as Attestation["enclaveMode"],
+    logs: (Array.isArray(row.logs) ? row.logs : []) as TEELog[],
+  };
 }
 
 async function decryptPayload(encryptedHex: string, ivHex: string): Promise<string> {
@@ -158,7 +213,7 @@ export async function executeTEE(req: DelegateRequest): Promise<Attestation> {
     logs,
   };
 
-  attestationStore.set(taskId, attestation);
+  await persistAttestation(attestation);
   return attestation;
 }
 
@@ -231,16 +286,19 @@ export async function executeInfoMarketTEE(req: {
     logs,
   };
 
-  attestationStore.set(taskId, attestation);
+  await persistAttestation(attestation);
   return attestation;
 }
 
-export function getAttestation(taskId: string): Attestation | undefined {
-  return attestationStore.get(taskId);
+export async function getAttestation(taskId: string): Promise<Attestation | undefined> {
+  const row = await prisma.attestation.findUnique({ where: { taskId } });
+  return row ? fromDb(row) : undefined;
 }
 
-export function getAllAttestations(): Attestation[] {
-  return Array.from(attestationStore.values()).sort(
-    (a, b) => b.enclaveTimestamp - a.enclaveTimestamp
-  );
+export async function getAllAttestations(): Promise<Attestation[]> {
+  const rows = await prisma.attestation.findMany({
+    orderBy: { enclaveTimestamp: "desc" },
+    take: 100,
+  });
+  return rows.map(fromDb);
 }

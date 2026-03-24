@@ -208,6 +208,42 @@ Read the **Conditional Recall** summary, the **burn pipeline**, research links, 
 - Node.js >= 18.0.0
 - NPM or Yarn
 
+### Database Setup (Neon + Prisma)
+
+BurnBroker now persists attestations in PostgreSQL (recommended: Neon) so Verify works reliably across serverless instances.
+
+1. Create a free Neon project and copy your connection string.
+2. Set `DATABASE_URL` in your local `.env` and Vercel environment variables:
+
+```bash
+DATABASE_URL="postgresql://<user>:<password>@<host>/<db>?sslmode=require"
+```
+
+3. Generate Prisma client:
+
+```bash
+npm run db:generate
+```
+
+4. Create/apply schema on the database:
+
+```bash
+npm run db:migrate -- --name init_attestations
+```
+
+For production deploys (Vercel CI), use:
+
+```bash
+npm run db:deploy
+```
+
+Useful DB scripts:
+
+```bash
+npm run db:push
+npm run db:studio
+```
+
 ### Get Binance Testnet API Keys
 1. Go to [testnet.binance.vision](https://testnet.binance.vision/)
 2. Log in with your GitHub account
